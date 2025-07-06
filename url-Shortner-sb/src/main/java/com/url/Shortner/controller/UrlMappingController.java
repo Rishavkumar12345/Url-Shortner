@@ -69,7 +69,7 @@ public class UrlMappingController {
         
     }
 
-    @GetMapping("/totalcount")
+    @GetMapping("/totalclicks")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Map<LocalDate,Long>>getTotalcount(Principal principal,@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate){
 

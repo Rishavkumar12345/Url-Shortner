@@ -19,7 +19,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class AuthController {
 
-    private UserServices userService;
+    private final UserServices userService;
 
     @PostMapping("/public/signup")
     public ResponseEntity<?>registerUser(@RequestBody RegisterUser registerUser){
