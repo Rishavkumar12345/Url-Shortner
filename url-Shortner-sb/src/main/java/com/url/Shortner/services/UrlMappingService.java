@@ -2,6 +2,7 @@ package com.url.Shortner.services;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -67,9 +68,11 @@ public class UrlMappingService {
         return urlMappingRepository.findByUser(user).stream().map(this :: convertToDto).toList();
     }
 
-    public List<ClickEventDTO>getClickEventByDate(String shorturl,LocalDateTime start, LocalDateTime end){
+    /*public List<ClickEventDTO>getClickEventByDate(String shorturl,LocalDateTime start, LocalDateTime end){
         
         UrlMapping urlMapping=urlMappingRepository.findByShortUrl(shorturl);
+        
+        //System.out.println("Here is total details: "+urlMapping);
 
         if(urlMapping!=null){
             return clickEventRepository.findByUrlMappingAndClickDateBetween(urlMapping,start,end).stream()
@@ -86,7 +89,31 @@ public class UrlMappingService {
 
         return null;
 
+    }*/
+
+    public List<ClickEventDTO> getClickEventByDate(String shorturl, LocalDateTime start, LocalDateTime end) {
+    try {
+        UrlMapping urlMapping = urlMappingRepository.findByShortUrl(shorturl);
+        if (urlMapping != null) {
+            return clickEventRepository.findByUrlMappingAndClickDateBetween(urlMapping, start, end).stream()
+                    .collect(Collectors.groupingBy(click -> click.getClickDate().toLocalDate(), Collectors.counting()))
+                    .entrySet().stream()
+                    .map(entry -> {
+                        ClickEventDTO dto = new ClickEventDTO();
+                        dto.setClickDate(entry.getKey());
+                        dto.setCount(entry.getValue());
+                        return dto;
+                    })
+                    .collect(Collectors.toList());
+        } else {
+            System.out.println("No URL mapping found for shorturl: " + shorturl);
+        }
+    } catch (Exception e) {
+        e.printStackTrace(); // print the error
     }
+    return Collections.emptyList();
+}
+
 
     public Map<LocalDate, Long> getTotalClickByUser(User user, LocalDate start, LocalDate end) {
         List<UrlMapping>urlMappings=urlMappingRepository.findByUser(user);

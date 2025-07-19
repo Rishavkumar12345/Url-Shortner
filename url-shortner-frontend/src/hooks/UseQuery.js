@@ -9,12 +9,16 @@ export const useFetchMyShortenUrl=(token,onError)=>{
                     headers:{
                         "Content-Type":"application/json",
                         Accept:"application/json",
-                        Authorization:"Bearer "+token
+                        Authorization:"Bearer "+ token
                     }
                 }
             );
         },{
             select:(data)=>{
+                // Handle null or undefined data
+                if (!data || !data.data || !Array.isArray(data.data)) {
+                    return [];
+                }
      
                 const shotenUrl = data.data.sort(
                     (a,b)=> new Date(b.createdDate) - new Date(a.createdDate)
@@ -23,7 +27,8 @@ export const useFetchMyShortenUrl=(token,onError)=>{
                 return shotenUrl;
             },
             onError,
-            staleTime: 5000
+            staleTime: 5000,
+            enabled: !!token // Only run query if token exists
         });
 }
 
@@ -35,18 +40,23 @@ export const useFetchTotalClick=(token,onError)=>{
                     headers:{
                         "Content-Type":"application/json",
                         Accept:"application/json",
-                        Authorization:"Bearer "+token
+                        Authorization:"Bearer "+ token
                     }
                 }
             );
         },{
             select:(data)=>{
-                 // data.data =>
-                    //  {
-                    //     "2024-01-01": 120,
-                    //     "2024-01-02": 95,
-                    //     "2024-01-03": 110,
-                    //   };
+                // Handle null or undefined data
+                if (!data || !data.data) {
+                    return [];
+                }
+                
+                // data.data =>
+                //  {
+                //     "2024-01-01": 120,
+                //     "2024-01-02": 95,
+                //     "2024-01-03": 110,
+                //   };
                       
                 const convertToArray = Object.keys(data.data).map((key) => ({
                     clickDate: key,
@@ -63,6 +73,7 @@ export const useFetchTotalClick=(token,onError)=>{
                 return convertToArray;
             },
             onError,
-            staleTime: 5000
+            staleTime: 5000,
+            enabled: !!token // Only run query if token exists
         });
 };

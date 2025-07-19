@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 import Graph from './Graph'
-import { dummyData } from '../../../dummyData/Data'
+import { FaLink } from 'react-icons/fa'
 import { useStoreContext } from '../../contextapi/contextapi'
 import { useFetchMyShortenUrl, useFetchTotalClick } from '../../hooks/UseQuery'
 import ShortenPopUp from './ShortenPopUp'
+import ShortenUrlList from './ShortenUrlList'
 
 const Dashboard = () => {
 
@@ -35,7 +36,7 @@ const Dashboard = () => {
                      </h3>
                    </div>
               )}
-              <Graph graphData={totalClicks || []}/>
+              <Graph graphData={totalClicks}/>
             </div>
         </div>
 
@@ -47,6 +48,21 @@ const Dashboard = () => {
         </div>
         </>
       )}
+
+      <div>
+        {!isLoading && Array.isArray(myShortenUrls) && myShortenUrls.length === 0 ?  (
+                <div className="flex justify-center pt-16">
+                  <div className="flex gap-2 items-center justify-center  py-6 sm:px-8 px-5 rounded-md   shadow-lg  bg-gray-50">
+                    <h1 className="text-slate-800 font-montserrat   sm:text-[18px] text-[14px] font-semibold mb-1 ">
+                      You haven't created any short link yet
+                    </h1>
+                    <FaLink className="text-blue-500 sm:text-xl text-sm " />
+                  </div>
+                </div>
+              ) :(
+                <ShortenUrlList data={myShortenUrls}/>
+              )}
+      </div>
 
       <ShortenPopUp open={shortenPopUp} setOpen={setShortenPopUp} refetch={refetch}/>
     </div>

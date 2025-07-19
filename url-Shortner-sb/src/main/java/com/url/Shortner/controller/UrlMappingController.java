@@ -4,10 +4,13 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,6 +38,7 @@ public class UrlMappingController {
     @Autowired
     private UserServices userServices;
     private UrlMappingService urlMappingService;
+
     
     @PostMapping("/shortner")
     @PreAuthorize("hasRole('USER')")
@@ -56,18 +60,34 @@ public class UrlMappingController {
         return ResponseEntity.ok(allurl);
     }
 
-    @GetMapping("/clickeventanalystics/{shorturl}")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<List<ClickEventDTO>>geturlAnalytics(@PathVariable String shorturl,@RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate){
+  @GetMapping("/clickeventanalystics/{shorturl}")
+@PreAuthorize("hasRole('USER')")
+public ResponseEntity<List<ClickEventDTO>> geturlAnalytics(
+    @PathVariable String shorturl,
+    @RequestParam("startDate") String startDate,
+    @RequestParam("endDate") String endDate) {
+    
+    try {
+        DateTimeFormatter datetimeformatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+        LocalDateTime start = LocalDateTime.parse(startDate, datetimeformatter);
+        LocalDateTime end = LocalDateTime.parse(endDate, datetimeformatter);
 
-        DateTimeFormatter datetimeformatter=DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-        LocalDateTime start=LocalDateTime.parse(startDate,datetimeformatter);
-        LocalDateTime end=LocalDateTime.parse(endDate,datetimeformatter);
+        List<ClickEventDTO> data = urlMappingService.getClickEventByDate(shorturl, start, end);
 
-        List<ClickEventDTO>clickEventDTO=urlMappingService.getClickEventByDate(shorturl,start,end);
-        return ResponseEntity.ok(clickEventDTO);
-        
+        if (data == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.emptyList());
+        }
+
+        return ResponseEntity.ok(data);
+    } catch (DateTimeParseException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.emptyList());
+    } catch (Exception ex) {
+        // Log the error for debugging
+        ex.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                             .body(Collections.emptyList());
     }
+}
 
     @GetMapping("/totalclicks")
     @PreAuthorize("hasRole('USER')")
@@ -79,6 +99,12 @@ public class UrlMappingController {
         LocalDate end=LocalDate.parse(endDate,datetimeformatter);
 
         Map<LocalDate,Long>counturlhit=urlMappingService.getTotalClickByUser(user,start,end);
+        // System.out.println("Id: " + user.getId());
+        // System.out.println("User: " + user.getUserName());
+        // System.out.println("Start: " + start);
+        // System.out.println("End: " + end);
+        // Map<LocalDate,Long> counturlhit = urlMappingService.getTotalClickByUser(user, start, end);
+        // System.out.println("Result: " + counturlhit);
         return ResponseEntity.ok(counturlhit);
         
     }
